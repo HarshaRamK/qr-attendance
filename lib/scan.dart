@@ -37,7 +37,7 @@ class _ScanPageState extends State<ScanPage> {
   String qrCodeResult = "Scan The QR for Attendance";
   late DateTime start;
   late DateTime end;
-  late Map _response;
+  Map? _response; // ✅ Make it nullable
 
   dynamic myEncode(dynamic item) {
     if (item is DateTime) {
@@ -151,15 +151,17 @@ class _ScanPageState extends State<ScanPage> {
                   var client = http.Client();
                   try {
                     var uriResponse = await client.post(
-                      Uri.parse('https://your-api-url.com/mark-attendance'),
+                      Uri.parse('https://your-api-url.com/mark-attendance'), // update your API
                       headers: {
                         "Content-Type": "application/json;charset=UTF-8"
                       },
                       body: body1,
                     );
-                    _response = json.decode(uriResponse.body);
-                  } finally {
-                    if (_response["present"] == true) {
+                    setState(() {
+                      _response = json.decode(uriResponse.body);
+                    });
+
+                    if (_response!["present"] == true) {
                       Fluttertoast.showToast(
                         msg: "Attendance added for class ${details[2]}",
                         toastLength: Toast.LENGTH_SHORT,
@@ -175,6 +177,15 @@ class _ScanPageState extends State<ScanPage> {
                         fontSize: 20.0,
                       );
                     }
+                  } catch (e) {
+                    Fluttertoast.showToast(
+                      msg: "Server error: $e",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.SNACKBAR,
+                      fontSize: 16.0,
+                    );
+                  } finally {
+                    client.close();
                   }
                 },
                 child: const Text(
@@ -187,7 +198,11 @@ class _ScanPageState extends State<ScanPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              buildButton("Check Attendance", AttendancePage(_response)),
+
+              // ✅ Conditionally show the button
+              if (_response != null)
+                buildButton("Check Attendance", AttendancePage(_response!)),
+
               const SizedBox(height: 35),
               SvgPicture.asset(
                 "assets/phone.svg",
@@ -210,23 +225,20 @@ class _ScanPageState extends State<ScanPage> {
           borderRadius: BorderRadius.circular(40.0),
         ),
       ),
-      onPressed: () async {
-        var client = http.Client();
-        try {
-          var uriResponse = await client.get(
-            Uri.parse(
-                'https://your-api-url.com/get-attendance/$sid'), // update this
-            headers: {"Content-Type": "application/json;charset=UTF-8"},
+      onPressed: () {
+        if (_response == null) {
+          Fluttertoast.showToast(
+            msg: "Please scan the QR code first.",
+            toastLength: Toast.LENGTH_SHORT,
           );
-          Map _response = json.decode(uriResponse.body);
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AttendancePage(_response),
-            ),
-          );
-        } finally {
-          client.close();
+          return;
         }
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => widget,
+          ),
+        );
       },
       child: Text(
         text,

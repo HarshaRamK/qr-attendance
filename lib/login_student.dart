@@ -1,23 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_attendance_app/scan.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
-
-class StudentLoginSchema {
-  final String regno;
-  final String password;
-  final bool isStudent;
-
-  StudentLoginSchema(this.regno, this.password, this.isStudent);
-
-  Map toJson() => {
-        'username': regno,
-        'password': password,
-        'isStudent': isStudent,
-      };
-}
 
 class LoginStudentPage extends StatefulWidget {
   @override
@@ -27,6 +11,15 @@ class LoginStudentPage extends StatefulWidget {
 class _LoginStudentPageState extends State<LoginStudentPage> {
   final passwordController = TextEditingController();
   final regnoController = TextEditingController();
+
+  // Hardcoded student credentials
+  final Map<String, String> studentLogins = {
+    "S1001": "pass123",
+    "S1002": "abc123",
+    "S1003": "xyz789",
+    "S1004": "student4",
+    "S1005": "flutter5"
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -116,50 +109,22 @@ class _LoginStudentPageState extends State<LoginStudentPage> {
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                 ),
-                onPressed: () async {
-                  StudentLoginSchema s1 = StudentLoginSchema(
-                    regnoController.text,
-                    passwordController.text,
-                    true,
-                  );
+                onPressed: () {
+                  String regno = regnoController.text.trim();
+                  String password = passwordController.text.trim();
 
-                  Map data = s1.toJson();
-                  String body1 = json.encode(data);
-                  var client = http.Client();
-                  try {
-                    var uriResponse = await client.post(
-                      Uri.parse('https://your-api-url.com/token'),
-                      headers: {
-                        "Content-Type": "application/json;charset=UTF-8"
-                      },
-                      body: body1,
-                    );
-
-                    Map _response = json.decode(uriResponse.body);
-                    String regno = regnoController.text;
-
-                    if (_response.containsKey("access_token")) {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => ScanPage(regno),
-                      ));
-                    } else {
-                      Fluttertoast.showToast(
-                        msg: _response['detail'] ?? 'Login failed',
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.SNACKBAR,
-                        fontSize: 12.0,
-                      );
-                    }
-                  } catch (error) {
-                    print(error);
+                  if (studentLogins.containsKey(regno) &&
+                      studentLogins[regno] == password) {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ScanPage(regno),
+                    ));
+                  } else {
                     Fluttertoast.showToast(
-                      msg: 'Server error. Try again later.',
+                      msg: 'Invalid registration number or password',
                       toastLength: Toast.LENGTH_SHORT,
                       gravity: ToastGravity.SNACKBAR,
                       fontSize: 12.0,
                     );
-                  } finally {
-                    client.close();
                   }
                 },
                 child: const Text(

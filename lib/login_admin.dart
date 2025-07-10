@@ -1,23 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:qr_attendance_app/classdetails.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
-
-class FacultyLoginSchema {
-  final String email;
-  final String password;
-  final bool isStudent;
-
-  FacultyLoginSchema(this.email, this.password, this.isStudent);
-
-  Map toJson() => {
-        'username': email,
-        'password': password,
-        'isStudent': isStudent,
-      };
-}
 
 class LoginAdminPage extends StatefulWidget {
   @override
@@ -27,6 +11,15 @@ class LoginAdminPage extends StatefulWidget {
 class _LoginAdminPageState extends State<LoginAdminPage> {
   final passwordController = TextEditingController();
   final emailController = TextEditingController();
+
+  // Hardcoded faculty logins
+  final Map<String, String> facultyLogins = {
+    "teacher1@example.com": "pass123",
+    "teacher2@example.com": "abc123",
+    "teacher3@example.com": "teach789",
+    "teacher4@example.com": "faculty4",
+    "teacher5@example.com": "flutter5"
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -115,49 +108,22 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                     borderRadius: BorderRadius.circular(20.0),
                   ),
                 ),
-                onPressed: () async {
-                  FacultyLoginSchema s1 = FacultyLoginSchema(
-                    emailController.text,
-                    passwordController.text,
-                    false,
-                  );
-                  Map data = s1.toJson();
-                  String body1 = json.encode(data);
+                onPressed: () {
+                  String email = emailController.text.trim();
+                  String password = passwordController.text.trim();
 
-                  var client = http.Client();
-                  try {
-                    var uriResponse = await client.post(
-                      Uri.parse('https://your-api-url.com/token'),
-                      headers: {
-                        "Content-Type": "application/json;charset=UTF-8"
-                      },
-                      body: body1,
-                    );
-
-                    Map _response = json.decode(uriResponse.body);
-
-                    if (_response.containsKey("access_token")) {
-                      String id = _response["access_token"];
-                      Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => ClassDetailsPage(id)));
-                    } else {
-                      Fluttertoast.showToast(
-                        msg: _response['detail'] ?? 'Login failed',
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.SNACKBAR,
-                        fontSize: 12.0,
-                      );
-                    }
-                  } catch (error) {
-                    print(error);
+                  if (facultyLogins.containsKey(email) &&
+                      facultyLogins[email] == password) {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => ClassDetailsPage(email),
+                    ));
+                  } else {
                     Fluttertoast.showToast(
-                      msg: 'Server error. Please try again later.',
+                      msg: 'Invalid email or password',
                       toastLength: Toast.LENGTH_SHORT,
                       gravity: ToastGravity.SNACKBAR,
                       fontSize: 12.0,
                     );
-                  } finally {
-                    client.close();
                   }
                 },
                 child: const Text(
