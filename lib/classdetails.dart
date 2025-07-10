@@ -14,7 +14,7 @@ class ClassDetailSchema {
 
   ClassDetailSchema(this.classname, this.start, this.end, this.facultyid);
 
-  Map toJson() => {
+  Map<String, dynamic> toJson() => {
         'classname': classname,
         'starttime': start,
         'endtime': end,
@@ -25,251 +25,219 @@ class ClassDetailSchema {
 class ClassDetailsPage extends StatefulWidget {
   final String id;
   ClassDetailsPage(this.id);
+
   @override
   _ClassDetailsPageState createState() => _ClassDetailsPageState(id);
 }
 
 class _ClassDetailsPageState extends State<ClassDetailsPage> {
-  String id;
+  final String id;
   _ClassDetailsPageState(this.id);
-  final passwordController = TextEditingController();
-  final emailController = TextEditingController();
-  final classnameContoller = TextEditingController();
+
+  final classnameController = TextEditingController();
   DateTime pickeddate = DateTime.now();
   TimeOfDay start = TimeOfDay.now();
   TimeOfDay end = TimeOfDay.now();
-  DateTime start1;
-  String cid;
-  DateTime end1;
+
+  late DateTime start1;
+  late DateTime end1;
+  late String cid;
+
   dynamic myEncode(dynamic item) {
-    if (item is DateTime) {
-      return item.toIso8601String();
-    }
-    return item;
+    return (item is DateTime) ? item.toIso8601String() : item;
+  }
+
+  String formatTimeOfDay(TimeOfDay tod, DateTime date) {
+    final dt = DateTime(date.year, date.month, date.day, tod.hour, tod.minute);
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(dt);
   }
 
   @override
   Widget build(BuildContext context) {
-    int t = end.minute;
-    int t1 = start.minute;
-    String endmin;
-    String startmin;
-    if (t < 10) {
-      endmin = "0" + t.toString();
-    } else {
-      endmin = t.toString();
-    }
-    if (t1 < 10) {
-      startmin = "0" + t1.toString();
-    } else {
-      startmin = t1.toString();
-    }
+    final startMin = start.minute.toString().padLeft(2, '0');
+    final endMin = end.minute.toString().padLeft(2, '0');
 
     return Scaffold(
       appBar: AppBar(
         flexibleSpace: Container(
-          decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  stops: [0.5,1],
-
-                  colors: [Color(0xff661EFF), Color(0xffFFA3FD)])),
-
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              stops: [0.5, 1],
+              colors: [Color(0xff661EFF), Color(0xffFFA3FD)],
+            ),
+          ),
         ),
-        title: Text("Class Builder",style: TextStyle(fontFamily: "Poppins",fontWeight: FontWeight.bold),),
+        title: const Text(
+          "Class Builder",
+          style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          padding: EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              new Padding(padding: const EdgeInsets.only(top: 20)),
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            SvgPicture.asset("assets/classbuilder.svg", height: 200, width: 181),
+            const SizedBox(height: 20),
 
-              SvgPicture.asset(
-                "assets/classbuilder.svg",
-                height: 200,
-                width: 181,
-              ),
-
-              new Padding(padding: const EdgeInsets.only(top: 20)),
-
-              Container(
-                height: 64,
-                width: 325,
-
-                decoration: BoxDecoration(
-                  color: Color(0xffEFF0F6),
+            // Class name
+            TextField(
+              controller: classnameController,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.edit),
+                labelText: 'Class Name',
+                filled: true,
+                fillColor: Color(0xffEFF0F6),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(16)),
-
-                ),
-                child: TextField(
-                  controller: classnameContoller,
-                  decoration: InputDecoration(
-                      border: InputBorder.none,
-                      prefixIcon:Icon(Icons.edit),
-                      //  border: UnderlineInputBorder(),
-                      //labelText: 'Teacher Email'),
-
-                      labelText: 'class name'),
+                  borderSide: BorderSide.none,
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
 
-              new Padding(padding: const EdgeInsets.only(top: 20)),
-
-
-              Container(
-                height: 64,
-                width: 325,
-
-                decoration: BoxDecoration(
-                  color: Color(0xffEFF0F6),
-                  borderRadius: BorderRadius.all(Radius.circular(16))),
-                  child: ListTile(
-                  title: Text(
-                      "${pickeddate.day}/${pickeddate.month}/${pickeddate.year}"),
-                  trailing: Icon(Icons.keyboard_arrow_down),
-                  onTap: _pickDate,
+            // Date
+            InkWell(
+              onTap: _pickDate,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xffEFF0F6),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(DateFormat('dd/MM/yyyy').format(pickeddate)),
+                    const Icon(Icons.keyboard_arrow_down),
+                  ],
                 ),
               ),
-              new Padding(padding: const EdgeInsets.only(top: 20)),
+            ),
+            const SizedBox(height: 20),
 
-              Container(
-                decoration: BoxDecoration(
-                    color: Color(0xffEFF0F6),
-                    borderRadius: BorderRadius.all(Radius.circular(16))),
-                child: ListTile(
-                  title: Text("${start.hour}" + ":" + startmin),
-                  trailing: Icon(Icons.keyboard_arrow_down),
-                  onTap: _pickStartTime,
+            // Start Time
+            InkWell(
+              onTap: _pickStartTime,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xffEFF0F6),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [Text("${start.hour}:$startMin"), const Icon(Icons.keyboard_arrow_down)],
                 ),
               ),
-              new Padding(padding: const EdgeInsets.only(top: 20)),
+            ),
+            const SizedBox(height: 20),
 
-              Container(
-                decoration: BoxDecoration(
-                    color: Color(0xffEFF0F6),
-                    borderRadius: BorderRadius.all(Radius.circular(16))),
-                child: ListTile(
-                  title: Text("${end.hour}" + ":" + endmin),
-                  trailing: Icon(Icons.keyboard_arrow_down),
-                  onTap: _pickEndTime,
+            // End Time
+            InkWell(
+              onTap: _pickEndTime,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xffEFF0F6),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [Text("${end.hour}:$endMin"), const Icon(Icons.keyboard_arrow_down)],
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
 
-              new Padding(padding: const EdgeInsets.only(top: 20)),
-
-              flatButton(
-                  "Generate QR",
-                  GeneratePage(
-                      pickeddate, start, end, classnameContoller.text, id, cid)),
-            ],
-          ),
+            // Generate QR Button
+            ElevatedButton(
+              onPressed: _generateClass,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                backgroundColor: const Color(0xff5F2EEA),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+              ),
+              child: const Text("Generate QR", style: TextStyle(color: Color(0xffF7F7FC), fontFamily: "Poppins", fontWeight: FontWeight.w600)),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  _pickDate() async {
-    DateTime date = await showDatePicker(
+  Future<void> _pickDate() async {
+    final date = await showDatePicker(
       context: context,
       firstDate: DateTime(DateTime.now().year - 5),
       lastDate: DateTime(DateTime.now().year + 5),
-      initialDate: DateTime.now(),
+      initialDate: pickeddate,
     );
-
-    if (date != null)
-      setState(() {
-        pickeddate = date;
-      });
+    if (date != null) setState(() => pickeddate = date);
   }
 
-  _pickStartTime() async {
-    TimeOfDay time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (time != null)
-      setState(() {
-        start = time;
-      });
+  Future<void> _pickStartTime() async {
+    final time = await showTimePicker(context: context, initialTime: start);
+    if (time != null) setState(() => start = time);
   }
 
-  _pickEndTime() async {
-    TimeOfDay time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (time != null)
-      setState(() {
-        end = time;
-      });
+  Future<void> _pickEndTime() async {
+    final time = await showTimePicker(context: context, initialTime: end);
+    if (time != null) setState(() => end = time);
   }
 
- String formatTimeOfDay(TimeOfDay tod, DateTime date) {
-    final now = date;
-    final dt = DateTime(now.year, now.month, now.day, tod.hour, tod.minute);
-    final format = DateFormat('yyyy-MM-dd HH:mm:ss');
-    return format.format(dt);
-  }
-  
-  Widget flatButton(String text, Widget widget) {
-    return FlatButton(
-      padding: EdgeInsets.all(15.0),
-      onPressed: () async {
-        print(start);
-        start1 = DateTime.parse(formatTimeOfDay(start, pickeddate));
-        end1 = DateTime.parse(formatTimeOfDay(end, pickeddate));
-        print(start1);
-        ClassDetailSchema s1 =
-            new ClassDetailSchema(classnameContoller.text, start1, end1, id);
-        Map data = s1.toJson();
-        print(data);
+  Future<void> _generateClass() async {
+    start1 = DateTime.parse(formatTimeOfDay(start, pickeddate));
+    end1 = DateTime.parse(formatTimeOfDay(end, pickeddate));
 
-        if (start.hour > end.hour) {
-          Fluttertoast.showToast(
-              msg: "Please check the timings",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.SNACKBAR,
-              fontSize: 12.0);
-        } else {
-          String body1 = json.encode(data, toEncodable: myEncode);
+    if (start1.isAfter(end1)) {
+      Fluttertoast.showToast(
+        msg: "Please check the timings",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.SNACKBAR,
+        fontSize: 12.0,
+      );
+    }
 
-          print(body1);
-          var client = http.Client();
-          try {
-            var uriResponse = await client.post(
-              Uri.parse('SERVER ADD CLASS ENDPOINT'),
-              headers: {"Content-Type": "application/json;charset=UTF-8"},
-              body: body1,
-            );
-            print('sent');
-            print(uriResponse.body);
-            Map _response = json.decode(uriResponse.body);
-            cid = _response['cid'];
-          } finally {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => GeneratePage(
-                    pickeddate, start, end, classnameContoller.text, id, cid)));
-          }
-        }
-      },
-      child: Text(
-        text,
-        style: TextStyle(color: Color(0xffF7F7FC),fontFamily: "Poppins", fontWeight:FontWeight.w600),
-      ),
-      color: Color(0xff5F2EEA),
-      shape: RoundedRectangleBorder(
-          //side: BorderSide(color: Colors.blue, width: 3.0),style: TextStyle(color: Color(0xffF7F7FC),fontFamily: "Poppins", fontWeight:FontWeight.w600),
+    final schema = ClassDetailSchema(classnameController.text, start1, end1, id);
+    final body = json.encode(schema.toJson(), toEncodable: myEncode);
 
-          borderRadius: BorderRadius.circular(40.0)),
-    );
+    final client = http.Client();
+    try {
+      final response = await client.post(
+        Uri.parse('YOUR_SERVER_ADD_CLASS_ENDPOINT'),
+        headers: {"Content-Type": "application/json;charset=UTF-8"},
+        body: body,
+      );
+
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      cid = data['cid'];
+
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => GeneratePage(pickeddate, start, end, classnameController.text, id, cid),
+      ));
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Something went wrong!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.SNACKBAR,
+        fontSize: 12.0,
+      );
+    } finally {
+      client.close();
+    }
   }
 }
